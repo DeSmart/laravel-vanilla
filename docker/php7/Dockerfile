@@ -16,7 +16,8 @@ WORKDIR /var/www/vanilla
 
 COPY . ./
 
-# Install packages
-RUN composer install --no-interaction --prefer-source
+# Install and bootstrap packages
+RUN composer install --no-interaction --prefer-source \
+    && codecept bootstrap
 
 # RUN php artisan clear-compiled && php artisan optimize
