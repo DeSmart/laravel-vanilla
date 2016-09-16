@@ -1,0 +1,28 @@
+www:
+    extends:
+        file: docker-compose.base.yml
+        service: www
+    ports:
+        - "8080:80"
+    links:
+        - api
+    volumes:
+        - "./docker/nginx/vhost.conf:/etc/nginx/conf.d/default.conf"
+        - "./:/var/www/vanilla"
+
+api:
+    extends:
+        file: docker-compose.base.yml
+        service: api
+    links:
+        - db
+    volumes:
+        - "./:/var/www/vanilla"
+    environment:
+        - "APP_ENV=local"
+        - "APP_DEBUG=true"
+
+db:
+    extends:
+        file: docker-compose.base.yml
+        service: db

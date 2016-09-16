@@ -1,0 +1,12 @@
+www:
+    build: ./docker/nginx/
+    dockerfile: Dockerfile
+
+api:
+    build: .
+    dockerfile: docker/php7/Dockerfile
+
+db:
+    image: mysql:5.7
+    environment:
+        - "MYSQL_ROOT_PASSWORD=123qwe"
