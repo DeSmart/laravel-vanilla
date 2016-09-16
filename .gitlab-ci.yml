@@ -1,0 +1,15 @@
+test:app:
+    script:
+        - docker-compose -f $COMPOSE_FILENAME pull
+        - docker-compose -f $COMPOSE_FILENAME build
+        - docker-compose -f $COMPOSE_FILENAME run api bash -c "composer install && php ./vendor/bin/phpunit"
+    cache:
+        untracked: true
+        paths:
+            - vendor/
+deploy:forge:
+    stage: deploy
+    only:
+        - develop
+    script:
+        - wget <DEPLOY_SCRIPT_URL> -O /dev/null
