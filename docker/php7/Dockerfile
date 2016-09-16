@@ -15,9 +15,3 @@ COPY docker/php7/overrides.ini /usr/local/etc/php/conf.d/overrides.ini
 WORKDIR /var/www/vanilla
 
 COPY . ./
-
-# Install and bootstrap packages
-RUN composer install --no-interaction --prefer-source \
-    && php vendor/bin/codecept bootstrap
-
-# RUN php artisan clear-compiled && php artisan optimize
