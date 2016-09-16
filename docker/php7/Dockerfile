@@ -18,6 +18,6 @@ COPY . ./
 
 # Install and bootstrap packages
 RUN composer install --no-interaction --prefer-source \
-    && codecept bootstrap
+    && php vendor/bin/codecept bootstrap
 
 # RUN php artisan clear-compiled && php artisan optimize
