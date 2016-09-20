@@ -10,6 +10,7 @@
 - dc run api composer install --prefer-source
 - dc run api php artisan key:generate
 - dc run api php vendor/bin/codecept bootstrap
+- rm -rf .git
 
 ---
 
