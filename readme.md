@@ -1,3 +1,19 @@
+# Vanilla Laravel
+
+### Setup
+
+- git clone git@github.com:DeSmart/laravel-vanilla.git .
+- . dev.sh
+- dc up -d
+- chmod -R 0777 bootstrap/ storage/ (on host machine)
+- cp .env.example .env
+- dc run api composer install --prefer-source
+- dc run api php artisan key:generate
+- dc run api php vendor/bin/codecept bootstrap
+- rm -rf .git
+
+---
+
 # Project Name
 
 Some introduction text here.
