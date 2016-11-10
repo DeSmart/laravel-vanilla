@@ -43,6 +43,9 @@ stages:
         APP_ENV: beta
         APP_DEBUG: "false"
 
+.stable:
+    tag-pattern: &TAG_PATTERN /\d+\.\d+\.\d+/
+
 .scripts:
     install compose: &INSTALL_DOCKER_COMPOSE
         - apk add --update py-pip
@@ -79,6 +82,7 @@ build:php:image: &BUILD_PHP_IMAGE
     only:
         - master
         - develop
+        - *TAG_PATTERN
 
 build:www:image: &BUILD_WWW_IMAGE
     stage: build
@@ -151,10 +155,10 @@ beta:db:seed:
     after_script: *SEED_SCRIPTS
     when: manual
 
-deploy:production:images:
+tag:stable:images:
     stage: deploy
     only:
-        - master
+        - *TAG_PATTERN
     script:
         - test -z "$CI_BUILD_TAG" && exit 0
         - docker pull $PHP_IMAGE
