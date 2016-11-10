@@ -1,0 +1,5 @@
+docker-compose.*
+.gitlab-ci.yml
+.env
+.env.example
+dev.sh
