@@ -1,24 +1,24 @@
-FROM php:7-fpm
-MAINTAINER desmart
+FROM desmart/php:7.0-fpm-alpine
 
-# Install composer
-RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" \
-    && php composer-setup.php \
-    && php -r "unlink('composer-setup.php');" \
-    && mv composer.phar /usr/local/bin/composer \
-    && echo 'deb http://packages.dotdeb.org jessie all' >> /etc/apt/sources.list \
-    && echo 'deb-src http://packages.dotdeb.org jessie all' >> /etc/apt/sources.list \
-    && apt-get update \
-    && apt-get install -qq --yes wget \
-    && wget https://www.dotdeb.org/dotdeb.gpg \
-    && apt-key add dotdeb.gpg \
-    && apt-get update \
-    && apt-get install --yes git less php7.0-mysql \
-    && docker-php-ext-install pdo_mysql
+COPY ["composer.json", "composer.lock", "./"]
+COPY database/ database/
+COPY tests/ tests/
+COPY config/ config/
 
-COPY docker/php7/overrides.ini /usr/local/etc/php/conf.d/overrides.ini
-
-# Base directory for the app code
-WORKDIR /var/www/vanilla
+RUN set -xeu \
+    && composer install --no-dev --prefer-dist --no-interaction --no-progress --no-scripts \
+    && composer clear-cache
 
 COPY . ./
+
+RUN mkdir -p public/upload \
+    && chmod -R 777 public/upload
+
+RUN chmod -R 777 bootstrap/cache
+RUN chmod -R 777 storage
+
+RUN set -xeu \
+    && php artisan optimize \
+    && php artisan vendor:publish
+
+VOLUME /usr/src/app/public/upload

@@ -1,0 +1,32 @@
+version: '2'
+services:
+    www:
+        image: $WWW_IMAGE
+        environment:
+            - "VIRTUAL_HOST"
+        networks:
+            - default
+            - service-proxy
+
+    php:
+        image: $PHP_IMAGE
+        environment:
+            - "APP_ENV"
+            - "APP_DEBUG"
+            - "DB_HOST=db"
+            - "DB_DATABASE=app"
+            - "DB_USERNAME=app_user"
+            - "DB_PASSWORD=someVeryRandomPassword"
+            - "APP_KEY"
+
+    db:
+        extends:
+            file: docker-compose.base.yml
+            service: db
+        environment:
+            - "MYSQL_DATABASE=app"
+            - "MYSQL_USER=app_user"
+            - "MYSQL_PASSWORD=someVeryRandomPassword"
+networks:
+    service-proxy:
+        external: true

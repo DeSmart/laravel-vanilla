@@ -1,12 +1,16 @@
-www:
-    build: ./docker/nginx/
-    dockerfile: Dockerfile
+version: '2'
+services:
+    www:
+        build:
+            context: .
+            dockerfile: docker/nginx/Dockerfile
 
-api:
-    build: .
-    dockerfile: docker/php7/Dockerfile
+    php:
+        build:
+            context: .
+            dockerfile: docker/php7/Dockerfile
 
-db:
-    image: mysql:5.7
-    environment:
-        - "MYSQL_ROOT_PASSWORD=123qwe"
+    db:
+        image: mysql:5.7
+        environment:
+            - "MYSQL_RANDOM_ROOT_PASSWORD=yes"
