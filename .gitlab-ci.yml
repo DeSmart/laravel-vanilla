@@ -6,6 +6,7 @@ variables:
     WWW_STABLE_IMAGE: $CI_REGISTRY_IMAGE:www-$CI_BUILD_TAG
     VIRTUAL_HOST: $APP_ENV.$PROJECT_NAME.staging.desmart.com
     COMPOSE_FILE: docker-compose.staging.yml
+    NODE_VERSION: "7.1"
 
 before_script:
     - &COMPOSE_PROJECT_NAME export COMPOSE_PROJECT_NAME=$(echo "${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}" | sed -e 's/\(release\)\/.*$/\1/' | tr -cd '[[:alnum:]]' | tr '[:upper:]' '[:lower:]')
@@ -69,21 +70,36 @@ test:app:
         - docker-compose build
         - docker-compose run -e APP_KEY=$APP_KEY php make test
 
-build:images: &BUILD_IMAGES
+build:php:image: &BUILD_PHP_IMAGE
     stage: build
     script:
-        - docker-compose -f docker-compose.base.yml build
-        - docker images
-        - docker tag ${COMPOSE_PROJECT_NAME}_www $WWW_IMAGE
-        - docker push $WWW_IMAGE
+        - docker-compose -f docker-compose.base.yml build php
         - docker tag ${COMPOSE_PROJECT_NAME}_php $PHP_IMAGE
         - docker push $PHP_IMAGE
     only:
         - master
         - develop
 
-build:images:release:
-    <<: *BUILD_IMAGES
+build:www:image: &BUILD_WWW_IMAGE
+    stage: build
+    script:
+        - docker run --rm -v ${PWD}:/usr/src/app -w /usr/src/app node:$NODE_VERSION make assets
+        - docker-compose -f docker-compose.base.yml build www
+        - docker tag ${COMPOSE_PROJECT_NAME}_www $WWW_IMAGE
+        - docker push $WWW_IMAGE
+    only:
+        - master
+        - develop
+
+build:php:release:image:
+    <<: *BUILD_PHP_IMAGE
+    variables:
+        CI_BUILD_REF_NAME: release
+    only:
+        - /^release/
+
+build:www:release:image:
+    <<: *BUILD_WWW_IMAGE
     variables:
         CI_BUILD_REF_NAME: release
     only:

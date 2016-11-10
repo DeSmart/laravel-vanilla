@@ -3,3 +3,4 @@ docker-compose.*
 .env
 .env.example
 dev.sh
+node_modules
