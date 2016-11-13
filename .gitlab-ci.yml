@@ -67,11 +67,16 @@ stages:
 
 test:app:
     stage: test
+    variables:
+        COMPOSE_FILE: docker-compose.local.yml
     script:
-        - export COMPOSE_FILE=docker-compose.local.yml
         - docker-compose pull
         - docker-compose build
         - docker-compose run -e APP_KEY=$APP_KEY php make test
+    after_script:
+        - *COMPOSE_PROJECT_NAME
+        - docker-compose stop
+        - docker-compose rm --force
 
 build:php:image: &BUILD_PHP_IMAGE
     stage: build
@@ -94,6 +99,7 @@ build:www:image: &BUILD_WWW_IMAGE
     only:
         - master
         - develop
+        - *TAG_PATTERN
 
 build:php:release:image:
     <<: *BUILD_PHP_IMAGE
