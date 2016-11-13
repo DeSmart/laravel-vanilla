@@ -1,7 +1,7 @@
 {
     "name": "desmart/vanilla-laravel",
-    "description": "The Laravel Framework.",
-    "keywords": ["framework", "laravel"],
+    "description": "Vanilla is a customized Laravel instance for rapid application development.",
+    "keywords": ["desmart", "laravel", "api"],
     "license": "MIT",
     "type": "project",
     "require": {
@@ -53,5 +53,20 @@
     },
     "config": {
         "preferred-install": "dist"
+    },
+    "minimum-stability": "dev",
+    "repositories": [
+        {
+            "type": "path",
+            "url": "./packages/adr"
+        },
+        {
+            "type": "path",
+            "url": "./packages/jwt-auth"
+        }
+    ],
+    "suggest": {
+        "desmart/adr": "ADR pattern implementation",
+        "desmart/jwt-auth": "Simple JWT implementation fo rapid user authentication"
     }
 }

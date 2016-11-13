@@ -46,6 +46,14 @@ CI, by default, will:
   * `develop` -> test version
   * `release/*` -> beta version
 
+### Suggested packages
+
+In order to speed up development, check out these packages as you might find them useful:
+- [desmart/adr](https://github.com/DeSmart/adr) - ADR pattern implementation
+- [desmart/jwt-auth](https://github.com/DeSmart/jwt-auth) - Simple JWT implementation fo rapid user authentication
+
+**Below you will find a project `readme.md` template.**
+
 ---
 
 # Project Name
