@@ -20,3 +20,5 @@ RUN chmod -R 777 storage
 RUN set -xeu \
     && php artisan optimize \
     && php artisan vendor:publish
+
+VOLUME /usr/src/app/public/upload
