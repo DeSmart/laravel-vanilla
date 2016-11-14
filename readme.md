@@ -35,6 +35,7 @@ rm -rf .git
    ```
    docker run --rm desmart/laravel-appkey
    ```
+3. Edit `.gitlab-ci.yml` file and update `variables.PROJECT_NAME` value to match yours project name
 
 CI, by default, will:
 
@@ -43,8 +44,8 @@ CI, by default, will:
 * generate and push to registry docker images for `php` and `www` service.
   * images will be built for branches: `develop`, `master`, `release/*` and stable (tagged) versions
 * depending on branch a new staging version will be deployed:
-  * `develop` -> test version
-  * `release/*` -> beta version
+  * `develop` -> test version (url: test.PROJECT_NAME.staging.desmart.com)
+  * `release/*` -> beta version (url: beta.PROJECT_NAME.staging.desmart.com)
 
 ### Suggested packages
 
