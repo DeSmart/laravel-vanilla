@@ -19,13 +19,36 @@ Proceed with the following commands:
 dc up -d
 chmod -R 0777 bootstrap/ storage/ (on host machine)
 cp .env.example .env
-dc run api composer install --prefer-source
+dc run api composer install --prefer-dist
 dc run api php artisan key:generate
 dc run api php vendor/bin/codecept bootstrap
 rm -rf .git
 ```
 
+### Setting up Gitlab CI
+
+1. Goto variables setting page (https://git.desmart.com/PROJECT/PATH/variables)
+2. Add entry for `APP_KEY` (it will be used for staging environments, and during test builds)
+   * this entry should contain full output of `artisan key:generate --show` command  
+     alternatively run this command - it will generate full key:
+
+   ```
+   docker run --rm desmart/laravel-appkey
+   ```
+3. Edit `.gitlab-ci.yml` file and update `variables.PROJECT_NAME` value to match yours project name
+
+CI, by default, will:
+
+* run unit tests on every push
+  * test command is defined in `Makefile`, it will be ran on `php` container 
+* generate and push to registry docker images for `php` and `www` service.
+  * images will be built for branches: `develop`, `master`, `release/*` and stable (tagged) versions
+* depending on branch a new staging version will be deployed:
+  * `develop` -> test version (url: test.PROJECT_NAME.staging.desmart.com)
+  * `release/*` -> beta version (url: beta.PROJECT_NAME.staging.desmart.com)
+
 ### Suggested packages
+
 In order to speed up development, check out these packages as you might find them useful:
 - [desmart/adr](https://github.com/DeSmart/adr) - ADR pattern implementation
 - [desmart/jwt-auth](https://github.com/DeSmart/jwt-auth) - Simple JWT implementation fo rapid user authentication

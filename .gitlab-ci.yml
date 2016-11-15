@@ -1,15 +1,175 @@
-test:app:
-    script:
-        - docker-compose -f $COMPOSE_FILENAME pull
-        - docker-compose -f $COMPOSE_FILENAME build
-        - docker-compose -f $COMPOSE_FILENAME run api bash -c "composer install && php ./vendor/bin/phpunit"
-    cache:
-        untracked: true
-        paths:
-            - vendor/
-deploy:forge:
+variables:
+    PROJECT_NAME: vanilla
+    PHP_IMAGE: $CI_REGISTRY_IMAGE:php-$CI_BUILD_REF_NAME
+    PHP_STABLE_IMAGE: $CI_REGISTRY_IMAGE:php-$CI_BUILD_TAG
+    WWW_IMAGE: $CI_REGISTRY_IMAGE:www-$CI_BUILD_REF_NAME
+    WWW_STABLE_IMAGE: $CI_REGISTRY_IMAGE:www-$CI_BUILD_TAG
+    VIRTUAL_HOST: $APP_ENV.$PROJECT_NAME.staging.desmart.com
+    COMPOSE_FILE: docker-compose.staging.yml
+    NODE_VERSION: "7.1"
+
+before_script:
+    - &COMPOSE_PROJECT_NAME export COMPOSE_PROJECT_NAME=$(echo "${CI_PROJECT_PATH}/${CI_BUILD_REF_NAME}" | sed -e 's/\(release\)\/.*$/\1/' | tr -cd '[[:alnum:]]' | tr '[:upper:]' '[:lower:]')
+    - test -x docker && docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+
+stages:
+    - test
+    - build
+    - deploy
+
+# templates
+.test: &TEST_ENV
     stage: deploy
     only:
         - develop
+    environment:
+        name: test
+    tags:
+        - deploy
+    variables:
+        APP_ENV: test
+        APP_DEBUG: "true"
+
+.beta: &BETA_ENV
+    stage: deploy
+    only:
+        - /^release/
+    environment:
+        name: beta
+    tags:
+        - deploy
+    variables:
+        CI_BUILD_REF_NAME: release
+        APP_ENV: beta
+        APP_DEBUG: "false"
+
+.stable:
+    tag-pattern: &TAG_PATTERN /\d+\.\d+\.\d+/
+
+.scripts:
+    install compose: &INSTALL_DOCKER_COMPOSE
+        - apk add --update py-pip
+        - pip install docker-compose
+    deploy: &DEPLOY_SCRIPTS
+        - *COMPOSE_PROJECT_NAME
+        - docker-compose pull
+        - docker-compose up -d
+        - sleep 20
+        - docker-compose run php php artisan migrate
+    stop: &STOP_SCRIPTS
+        - *COMPOSE_PROJECT_NAME
+        - docker-compose stop
+        - docker-compose rm --force
+    seed: &SEED_SCRIPTS
+        - *COMPOSE_PROJECT_NAME
+        - docker-compose run php php artisan migrate:refresh --seed
+# templates - end
+
+test:app:
+    stage: test
+    variables:
+        COMPOSE_FILE: docker-compose.local.yml
     script:
-        - wget <DEPLOY_SCRIPT_URL> -O /dev/null
+        - docker-compose pull
+        - docker-compose build
+        - docker-compose run -e APP_KEY=$APP_KEY php make test
+    after_script:
+        - *COMPOSE_PROJECT_NAME
+        - docker-compose stop
+        - docker-compose rm --force
+
+build:php:image: &BUILD_PHP_IMAGE
+    stage: build
+    script:
+        - docker-compose -f docker-compose.base.yml build php
+        - docker tag ${COMPOSE_PROJECT_NAME}_php $PHP_IMAGE
+        - docker push $PHP_IMAGE
+    only:
+        - master
+        - develop
+        - *TAG_PATTERN
+
+build:www:image: &BUILD_WWW_IMAGE
+    stage: build
+    script:
+        - docker run --rm -v ${PWD}:/usr/src/app -w /usr/src/app node:$NODE_VERSION make assets
+        - docker-compose -f docker-compose.base.yml build www
+        - docker tag ${COMPOSE_PROJECT_NAME}_www $WWW_IMAGE
+        - docker push $WWW_IMAGE
+    only:
+        - master
+        - develop
+        - *TAG_PATTERN
+
+build:php:release:image:
+    <<: *BUILD_PHP_IMAGE
+    variables:
+        CI_BUILD_REF_NAME: release
+    only:
+        - /^release/
+
+build:www:release:image:
+    <<: *BUILD_WWW_IMAGE
+    variables:
+        CI_BUILD_REF_NAME: release
+    only:
+        - /^release/
+
+test:deploy:
+    <<: *TEST_ENV
+    script: *INSTALL_DOCKER_COMPOSE
+    after_script: *DEPLOY_SCRIPTS
+    environment:
+        name: test
+        on_stop: "test:stop"
+
+test:stop:
+    <<: *TEST_ENV
+    script: *INSTALL_DOCKER_COMPOSE
+    after_script: *STOP_SCRIPTS
+    when: manual
+    environment:
+        name: test
+        action: stop
+
+test:db:seed:
+    <<: *TEST_ENV
+    script: *INSTALL_DOCKER_COMPOSE
+    after_script: *SEED_SCRIPTS
+    when: manual
+
+beta:deploy:
+    <<: *BETA_ENV
+    script: *INSTALL_DOCKER_COMPOSE
+    after_script: *DEPLOY_SCRIPTS
+    environment:
+        name: beta
+        on_stop: "beta:stop"
+
+beta:stop:
+    <<: *BETA_ENV
+    script: *INSTALL_DOCKER_COMPOSE
+    after_script: *STOP_SCRIPTS
+    when: manual
+    environment:
+        name: beta
+        action: stop
+
+beta:db:seed:
+    <<: *BETA_ENV
+    script: *INSTALL_DOCKER_COMPOSE
+    after_script: *SEED_SCRIPTS
+    when: manual
+
+tag:stable:images:
+    stage: deploy
+    only:
+        - *TAG_PATTERN
+    script:
+        - test -z "$CI_BUILD_TAG" && exit 0
+        - docker pull $PHP_IMAGE
+        - docker tag $PHP_IMAGE $PHP_STABLE_IMAGE
+        - docker push $PHP_STABLE_IMAGE
+        - docker pull $WWW_IMAGE
+        - docker tag $WWW_IMAGE $WWW_STABLE_IMAGE
+        - docker push $WWW_STABLE_IMAGE
