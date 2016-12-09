@@ -59,7 +59,7 @@ stages:
     stop: &STOP_SCRIPTS
         - *COMPOSE_PROJECT_NAME
         - docker-compose stop
-        - docker-compose rm --force
+        - docker-compose rm -v --force
     seed: &SEED_SCRIPTS
         - *COMPOSE_PROJECT_NAME
         - docker-compose run php php artisan migrate:refresh --seed
