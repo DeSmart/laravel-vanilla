@@ -48,7 +48,8 @@ stages:
 
 .scripts:
     install compose: &INSTALL_DOCKER_COMPOSE
-        - apk add --update py2-pip
+        - apk update
+        - apk add $(apk search -q py2-pip py-pip | head -n1)
         - pip install docker-compose
     deploy: &DEPLOY_SCRIPTS
         - *COMPOSE_PROJECT_NAME
