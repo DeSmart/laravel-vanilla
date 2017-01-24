@@ -7,6 +7,8 @@ services:
         networks:
             - default
             - service-proxy
+        depends_on: 
+            - php
 
     php:
         image: $PHP_IMAGE
