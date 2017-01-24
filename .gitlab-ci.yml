@@ -55,14 +55,14 @@ stages:
         - docker-compose pull
         - docker-compose up -d
         - sleep 20
-        - docker-compose run php php artisan migrate
+        - docker-compose run --rm php php artisan migrate
     stop: &STOP_SCRIPTS
         - *COMPOSE_PROJECT_NAME
         - docker-compose stop
         - docker-compose rm -v --force
     seed: &SEED_SCRIPTS
         - *COMPOSE_PROJECT_NAME
-        - docker-compose run php php artisan migrate:refresh --seed
+        - docker-compose run --rm php php artisan migrate:refresh --seed
 # templates - end
 
 test:app:
