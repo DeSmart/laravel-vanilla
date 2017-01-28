@@ -31,7 +31,6 @@ services:
         ports:
             - "3306:3306"
         environment:
-            - "MYSQL_RANDOM_ROOT_PASSWORD=no"
             - "MYSQL_ROOT_PASSWORD=123qwe"
             - "MYSQL_DATABASE=vanilla_app"
             - "MYSQL_USER=vanilla"
