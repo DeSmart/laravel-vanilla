@@ -8,8 +8,6 @@ git clone git@github.com:DeSmart/laravel-vanilla.git .
 
 Set proper paths to folders and shared volumes in the following files:
 
-- `docker/php7/Dockerfile` (WORKDIR)
-- `docker/nginx/vhost.conf` (server root)
 - `docker-compose.local.yml` (mounted volumes for both 'www' and 'api' services)
 
 Proceed with the following commands:
@@ -19,9 +17,9 @@ Proceed with the following commands:
 dc up -d
 chmod -R 0777 bootstrap/ storage/ (on host machine)
 cp .env.example .env
-dc run api composer install --prefer-dist
-dc run api php artisan key:generate
-dc run api php vendor/bin/codecept bootstrap
+dc run php composer install --prefer-dist
+dc run php php artisan key:generate
+dc run php php vendor/bin/codecept bootstrap
 rm -rf .git
 ```
 
