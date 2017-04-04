@@ -44,7 +44,7 @@ stages:
         APP_DEBUG: "false"
 
 .stable:
-    tag-pattern: &TAG_PATTERN /\d+\.\d+\.\d+/
+    tag-pattern: &TAG_PATTERN /^\d+\.\d+\.\d+$/
 
 .scripts:
     install compose: &INSTALL_DOCKER_COMPOSE
